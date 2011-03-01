@@ -1,10 +1,11 @@
 import sbt._
-import org.coffeescript.CoffeeScriptCompile
+
+import org.coffeescript.ClosureCompile
 
 import scala.io.Source
 import java.io.File
 
-class Project(info: ProjectInfo) extends DefaultWebProject(info) with CoffeeScriptCompile {
+class Project(info: ProjectInfo) extends DefaultWebProject(info) with ClosureCompile {
 
   lazy val checkContains = task { args =>
     val file = Source.fromFile(new File(args(0)))

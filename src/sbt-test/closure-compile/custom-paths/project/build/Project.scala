@@ -1,10 +1,12 @@
 import sbt._
-import org.coffeescript.CoffeeScriptCompile
+import org.coffeescript.ClosureCompile
 
 import scala.io.Source
 import java.io.File
 
-class Project(info: ProjectInfo) extends DefaultProject(info) with CoffeeScriptCompile {
+class Project(info: ProjectInfo) extends DefaultProject(info) with ClosureCompile {
+  override def coffeeScriptDirectoryPathFinder = "src" / "main" / "custom-coffee-script"
+  override def coffeeScriptCompiledOuputDirectory = "src/main/custom-generated-javascript"
 
   lazy val checkContains = task { args =>
     val file = Source.fromFile(new File(args(0)))
