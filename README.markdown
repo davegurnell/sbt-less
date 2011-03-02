@@ -1,58 +1,17 @@
 closure-sbt-plugin
 ==================
 
-This is a [simple-build-tool](http://simple-build-tool.googlecode.com/) plugin for compiling Javascript using Google's [Closure compiler](http://code.google.com/p/closure-compiler/). It was originally forked from [this CoffeeScript plugin](https://github.com/rubbish/coffee-script-sbt-plugin). Most of the project is shameless searching-and-replacing. There are areas (such as the README below) where I haven't even gotten around to that yet.
+This is a [simple-build-tool](http://simple-build-tool.googlecode.com/) plugin for compiling Javascript using Google's [Closure compiler](http://code.google.com/p/closure-compiler/). It was originally forked from [this CoffeeScript plugin](https://github.com/rubbish/coffee-script-sbt-plugin). Most of the project is shameless searching-and-replacing.
 
-## Usage ##
-
-Run the`compile-coffee-script` task to compile all your CoffeeScript files under `src/main/cofffee-script/` into JavaScript. For web projects the files are compiled to under `src/main/webapp/javascript`, for other projects they will compiled to `src/main/generated-javascript/`. The file structure under the source directory will be maintained.
-
-The source and output paths can be configured via coffeeScriptDirectoryPathFinder and coffeeScriptCompiledOuputDirectory properties. i.e.
-
-    class Project(info: ProjectInfo) extends DefaultProject(info) {
-      override def coffeeScriptDirectoryPathFinder = "src" / "main" / "custom-coffee-script"
-      override def coffeeScriptCompiledOuputDirectory = "src/main/custom-generated-javascript"
-    ...
-    }
-
-See sbt's documentation on [Paths](http://code.google.com/p/simple-build-tool/wiki/Paths) for more information on the coffeeScriptDirectoryPathFinder property.
-
-CoffeeScript files are also added the watchPaths so that triggered actions will also be invoked when any CoffeeScript file changes.
-
-## Setup ##
-
-1. In your plugin definition file, add a dependency on coffee-script-sbt-plugin
-
-    i.e. in `project/plugins/Plugins.scala`
-
-        import sbt._
-
-        class Plugins(info: ProjectInfo) extends PluginDefinition(info) {
-          val coffeeScriptSbtRepo = "coffeeScript sbt repo" at "http://repo.coderlukes.com"
-          val coffeeScript = "org.coffeescript" % "coffee-script-sbt-plugin" % "0.1.0"
-        }
-
-2. In your project file, mixin the ClosureCompile trait
-
-    i.e., in `project/build/Project.scala`
-
-         import sbt._
-         import org.coffeescript.ClosureCompile
-
-        class YourProject(info: ProjectInfo) extends DefaultProject(info) with ClosureCompile {
-           // ....
-         }
-
-3. Optionally change the compile action to also include `closure-compile`
-
-    override def compileAction = super.compileAction dependsOn(compileCoffeeScript)
-
-## Roadmap ##
-
-See [TODO.org](TODO.org) for more information.
+More instructions to follow.
 
 ## LICENSE ##
 
+ Copyright (c) 2011 Untyped Ltd
+
+ Based on the CoffeeScript SBT plugin:
+ 
+ https://github.com/rubbish/coffee-script-sbt-plugin
  Copyright (c) 2010 Luke Amdor
 
  Permission is hereby granted, free of charge, to any person obtaining a copy

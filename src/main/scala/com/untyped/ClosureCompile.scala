@@ -4,15 +4,14 @@ import sbt._
 import scala.io.Source
 import java.io.File
 
-import com.google.javascript.jscomp.{ Compiler, CompilerOptions, JSSourceFile }
-
 trait ClosureCompile extends BasicScalaProject {
 
   protected def srcRoot = "src" / "main" / "javascript"
-  
+
+  lazy val manifestPaths = (srcRoot ##) ** "*.jstarget"
   lazy val srcPaths = (srcRoot ##) ** "*.js"
 
-  override def watchPaths = super.watchPaths +++ srcPaths
+  override def watchPaths = super.watchPaths +++ manifestPaths +++ srcPaths
 
   protected def desRoot = {
     if (mainArtifact.extension == "war") {
@@ -26,26 +25,18 @@ trait ClosureCompile extends BasicScalaProject {
     "Compiles Javascript files."
   
   def compileJsTasks = task { None } dependsOn ({
-    srcPaths.get.map { srcPath =>
-      val srcFile = srcPath.asFile
-      val desFile = new File(desRoot, "\\.js$".r.replaceFirstIn(srcPath.relativePath, ".js"))
+    manifestPaths.get.map { manifestPath =>
 
-      log.info("Src = %s" format (srcPath.toString))
-      log.info("Des = %s" format (Path.fromFile(desFile).toString))
+      val desPath = Path.fromFile(new File(
+        desRoot, "\\.jstarget$".r.replaceFirstIn(manifestPath.relativePath, ".js")))
+      
+      val manifest: JsManifest = new JsManifest(manifestPath, desPath)
 
-      fileTask(Path.fromFile(desFile) from srcPath) {
-        log.info("Compiling %s" format (srcPath.relativePath))
-
-        val compiler = new Compiler
-        val externs = List[JSSourceFile]().toArray
-        val sources = List[JSSourceFile](JSSourceFile.fromFile(srcFile)).toArray
-        val options = new CompilerOptions
-        
-        val result = compiler.compile(externs, sources, options)
-
-        new File(desFile.getParent).mkdirs()
-        
-        FileUtilities.write(desFile, compiler.toSource, log)
+      log.info("Manifest " + manifestPath)
+      log.info("Destination " + desPath)
+      
+      fileTask(desPath from manifestPath) {
+        manifest.compile(log)
       }
     }
   }.toSeq: _*)

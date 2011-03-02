@@ -3,6 +3,7 @@ package com.untyped
 import sbt._
 import scala.io.Source
 import java.io.File
+import java.net.URL
 
 import com.google.javascript.jscomp.{ Compiler, CompilerOptions, JSSourceFile }
 
@@ -29,14 +30,19 @@ class JsManifest(val manifestPath: Path, val desPath: Path) {
   def isFile(line: String): Boolean =
     !isSkippable(line) && !isUrl(line)
   
+  def urlToCode(url: URL): String =
+    Source.fromInputStream(url.openStream).mkString
+  
+  def urlToFilename(url: URL): String =
+    url.getPath.split("/").lastOption.getOrElse("unknown.js")
+    
   def lineToSources(line: String): List[JSSourceFile] = {
     if(isUrl(line)) {
-      Nil
+      val url = new URL(line)
+      List(JSSourceFile.fromCode(urlToCode(url), urlToFilename(url)))
     } else if(isFile(line)) {
       List(JSSourceFile.fromFile(Path.fromString(rootDir, line).asFile))
-    } else {
-      Nil
-    }
+    } else Nil
   }
   
   def externs(log: Logger): Array[JSSourceFile] = Nil.toArray
@@ -47,9 +53,12 @@ class JsManifest(val manifestPath: Path, val desPath: Path) {
   def compile(log: Logger): Option[String] = {
     val compiler = new Compiler
     val options = new CompilerOptions
+    
+    log.info("Source files " + sources(log).toString)
+    
     val result = compiler.compile(externs(log), sources(log), options)
     
-    log.info("Source " + compiler.toSource)
+    log.info("Compiled code " + compiler.toSource)
     
     new File(desPath.asFile.getParent).mkdirs()
     
