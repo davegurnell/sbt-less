@@ -38,14 +38,15 @@ The default behaviour of the plugin is to scan your `src/main/webapp` directory
 and look for files of extension `.jsmanifest`, or `.jsm` for short. These files
 should contain ordered lists of JavaScript source locations. For example:
 
-    # You can specify remote URLs...
+    # You can specify remote files using URLs...
     http://code.jquery.com/jquery-1.5.1.js
     
-    # ...and paths relative to the location of the .jfm file:
+    # ...and local files using regular paths
+    #    (relative to the location of the manifest):
     lib/foo.js
     bar.js
     
-    # Bash-style single-line comments and blank lines are also supported.
+    # Blank lines and bash-style comments are also supported.
     # These may be swapped for JS-style comments in the future.
 
 The plugin compiles this in two phases: first, it downloads and caches any
