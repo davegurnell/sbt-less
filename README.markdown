@@ -61,7 +61,7 @@ method. See the source for details.
 Acknowledgements
 ================
 
-Originally based on the [CoffeeScript SBT plugin], Copyright (c) 2010 Like Amdor.
+Based on the [CoffeeScript SBT plugin], Copyright (c) 2010 Like Amdor.
 
 Heavily influenced by the [YUI Compressor SBT plugin] by Jon Hoffman.
 
