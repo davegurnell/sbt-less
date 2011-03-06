@@ -9,7 +9,7 @@ import scala.io.Source
 
 import com.google.javascript.jscomp.{ Compiler, CompilerOptions, JSSourceFile }
 
-trait ClosureCompile extends DefaultWebProject {
+trait ClosureCompilerPlugin extends DefaultWebProject {
 
   // Configuration ------------------------------
 
@@ -39,14 +39,9 @@ trait ClosureCompile extends DefaultWebProject {
     closureManifestSources.get.map { new ManifestHelper(_).compileTask }.toSeq : _*)
 
   override def prepareWebappAction = super.prepareWebappAction.dependsOn(compileJs) 
-
   override def extraWebappFiles = super.extraWebappFiles +++ (closureOutputPath ** "*")
-
-  override def webappResources =
-    super.webappResources --- closureJsSources --- closureManifestSources
-
-  override def watchPaths =
-    super.watchPaths +++ closureJsSources +++ closureManifestSources
+  override def webappResources = super.webappResources --- closureManifestSources
+  override def watchPaths = super.watchPaths +++ closureJsSources +++ closureManifestSources
 
   // Implementation -----------------------------
   
@@ -61,12 +56,8 @@ trait ClosureCompile extends DefaultWebProject {
                      replace(closureSourcePath.absolutePath.toString, 
                              closureOutputPath.absolutePath.toString)
                              
-      log.debug("NAME0 ===== " + name0)
-      
       // Rename from .jsm or .jsmanifest to .js:
       val name1 = """[.]jsm(anifest)?$""".r.replaceAllIn(name0, ".js")
-      
-      log.debug("NAME1 ===== " + name1)
       
       Path.fromFile(new File(name1))
     }

@@ -1,2 +1,0 @@
-header.js
-footer.js
