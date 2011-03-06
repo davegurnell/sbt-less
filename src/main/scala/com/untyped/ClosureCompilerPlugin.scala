@@ -7,7 +7,7 @@ import java.net.URL
 
 import scala.io.Source
 
-import com.google.javascript.jscomp.{ Compiler, CompilerOptions, JSSourceFile }
+import com.google.javascript.jscomp._
 
 trait ClosureCompilerPlugin extends DefaultWebProject {
 
@@ -21,7 +21,13 @@ trait ClosureCompilerPlugin extends DefaultWebProject {
   def closureManifestSourceFilter: NameFilter = filter("*.jsm") | "*.jsmanifest"
   def closureManifestSources: PathFinder = descendents(closureSourcePath, closureManifestSourceFilter)
   
-  def closureOutputPath: Path = (outputPath / "closure-temp") ##
+  def closureOutputPath: Path = (outputPath / "sbt-closure-temp") ##
+  
+  def closureCompilerOptions = {
+    val options = new CompilerOptions
+    options.variableRenaming = VariableRenamingPolicy.LOCAL
+    options
+  }
   
   log.debug("Closure compiler config:")
   log.debug("  - closureSourcePath           : " + closureSourcePath)
@@ -35,7 +41,7 @@ trait ClosureCompilerPlugin extends DefaultWebProject {
   
   lazy val compileJs = dynamic(compileJsAction) describedAs "Compiles Javascript manifest files"
   
-  def compileJsAction = task{ None }.dependsOn(
+  def compileJsAction = task{ None }.named("closure-complete").dependsOn(
     closureManifestSources.get.map { new ManifestHelper(_).compileTask }.toSeq : _*)
 
   override def prepareWebappAction = super.prepareWebappAction.dependsOn(compileJs) 
@@ -111,20 +117,19 @@ trait ClosureCompilerPlugin extends DefaultWebProject {
     def urlPaths: List[Path] = urlLines.map(linePath _)
     
     def download(url: URL, path: Path): Option[String] = {
-      FileUtilities.createDirectory(Path.fromFile(path.asFile.getParent), log)
-      FileUtilities.write(path.asFile, urlContent(url), log)
+      FileUtilities.createDirectory(Path.fromFile(path.asFile.getParent), log).
+        orElse(FileUtilities.write(path.asFile, urlContent(url), log))
     }
     
     def downloadTasks: List[Task] = {
       for((url, path) <- urls.zip(urlPaths)) yield {
-        val label = "Download " + url.toString
+        val label = "closure-download " + url.toString
         val product = List(path) from Nil
 
-        log.info("Downloading " + url.toString + " to " + path.toString)
-
         fileTask(label, product){
+          log.debug("to " + path.toString)
           download(url, path)
-        }.describedAs(label)
+        }.named(label)
       }
     }
     
@@ -145,23 +150,37 @@ trait ClosureCompilerPlugin extends DefaultWebProject {
       
       val externs = externPaths.map(pathToJSSourceFile _).toArray
       val sources = sourcePaths.map(pathToJSSourceFile _).toArray
-      val options = new CompilerOptions
+      val options = closureCompilerOptions
 
       val result = compiler.compile(externs, sources, options)
-
-      FileUtilities.createDirectory(Path.fromFile(outputPath.asFile.getParent), log)
-      FileUtilities.write(outputPath.asFile, compiler.toSource, log)
+      
+      val errors = result.errors.toList
+      val warnings = result.warnings.toList
+      
+      if(!errors.isEmpty) {
+        log.error(errors.length + " errors compiling " + manifestPath.name + ":")
+        errors.foreach { (err: JSError) => log.error(err.toString) }
+        
+        Some("Failed to compile " + manifestPath.name)
+      } else {
+        if(!warnings.isEmpty) {
+          log.warn(warnings.length + " warnings compiling " + manifestPath.name + ":")
+          warnings.foreach { (err: JSError) => log.warn(err.toString) }
+        }
+        
+        FileUtilities.createDirectory(Path.fromFile(outputPath.asFile.getParent), log).
+          orElse(FileUtilities.write(outputPath.asFile, compiler.toSource, log))
+      }
     }
     
     def compileTask: Task = {
-      val label = "Compile " + outputPath.name
+      val label = "closure-compile " + outputPath.name
       val product = outputPath from (manifestPath :: sourcePaths)
 
-      log.info("Compiling " + manifestPath.toString + " to " + outputPath.toString)
-
       fileTask(label, product){
+        log.debug("to " + outputPath.toString)
         compile
-      }.describedAs(label).dependsOn(downloadTasks : _*)
+      }.named(label).dependsOn(downloadTasks : _*)
     }
     
   }
