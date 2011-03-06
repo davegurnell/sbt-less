@@ -51,13 +51,20 @@ should contain ordered lists of JavaScript source locations. For example:
 
 The plugin compiles this in two phases: first, it downloads and caches any
 remote scripts. Second, it feeds all of the specified scripts into the Closure
-compiler.
+compiler. The compiler outputs a file of the same name and relative path
+of the manifest, but with a `.js` extension. For example, if your manifest
+file is at `webapps/static/js/kitchen-sink.jsm` in the source tree, the final 
+path would be `webapps/static/js/kitchen-sink.js` in the target tree.
 
-If remote scripts are already cached on your filesystem, SBT won't try to
-download them again. Running `sbt clean` will delete the cache.
+If, on compilation, the plugin finds remote scripts already cached on your
+filesystem, it won't try to download them again. Running `sbt clean` will
+delete the cache.
 
 You can change the compiler options by overriding the `closureCompilerOptions`
 method. See the source for details.
+
+Finally, you can execute the plugin's compilation step independently of
+`prepare-webapp` using `sbt compile-js`.
 
 Acknowledgements
 ================
