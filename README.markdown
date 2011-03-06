@@ -15,7 +15,7 @@ Acknowledgements
 
 Originally based on the [CoffeeScript SBT plugin], Copyright (c) 2010 Like Amdor.
 
-Heavily influenced by the YUI Compressor SBT plugin by Jon Hoffman.
+Heavily influenced by the [YUI Compressor SBT plugin] by Jon Hoffman.
 
 [CoffeeScript SBT plugin]: https://github.com/rubbish/coffee-script-sbt-plugin
 [YUI Compressor SBT plugin]: https://github.com/hoffrocket
