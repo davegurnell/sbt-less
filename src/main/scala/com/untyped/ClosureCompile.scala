@@ -13,8 +13,7 @@ trait ClosureCompile extends DefaultWebProject {
 
   // Configuration ------------------------------
 
-  def closureSourcePath: Path = webappPath
-  def closureOutputPath: Path = outputPath
+  def closureSourcePath: Path = webappPath ##
 
   def closureJsSourceFilter: NameFilter = filter("*.js")
   def closureJsSources: PathFinder = descendents(closureSourcePath, closureJsSourceFilter)
@@ -22,27 +21,63 @@ trait ClosureCompile extends DefaultWebProject {
   def closureManifestSourceFilter: NameFilter = filter("*.jsm") | "*.jsmanifest"
   def closureManifestSources: PathFinder = descendents(closureSourcePath, closureManifestSourceFilter)
   
-  def closureTempPath: Path = closureOutputPath / "closure-temp"
+  def closureOutputPath: Path = (outputPath / "closure-temp") ##
   
-  log.info("Closure compiler config:")
-  log.info("  - closureSourcePath           : " + closureSourcePath)
-  log.info("  - closureOutputPath           : " + closureOutputPath)
-  log.info("  - closureJsSourceFilter       : " + closureJsSourceFilter)
-  log.info("  - closureJsSources            : " + closureJsSources)
-  log.info("  - closureManifestSourceFilter : " + closureManifestSourceFilter)
-  log.info("  - closureManifestSources      : " + closureManifestSources)
-  log.info("  - closureTempPath             : " + closureTempPath)
+  log.debug("Closure compiler config:")
+  log.debug("  - closureSourcePath           : " + closureSourcePath)
+  log.debug("  - closureOutputPath           : " + closureOutputPath)
+  log.debug("  - closureJsSourceFilter       : " + closureJsSourceFilter)
+  log.debug("  - closureJsSources            : " + closureJsSources)
+  log.debug("  - closureManifestSourceFilter : " + closureManifestSourceFilter)
+  log.debug("  - closureManifestSources      : " + closureManifestSources)
   
-  // Implementation -----------------------------
+  // Top-level stuff ----------------------------
   
-  lazy val compileJs = dynamic(compileJsTasks) describedAs "Compiles Javascript manifest files"
+  lazy val compileJs = dynamic(compileJsAction) describedAs "Compiles Javascript manifest files"
   
-  def compileJsTasks = task{ None }.dependsOn(
+  def compileJsAction = task{ None }.dependsOn(
     closureManifestSources.get.map { new ManifestHelper(_).compileTask }.toSeq : _*)
+
+  override def prepareWebappAction = super.prepareWebappAction.dependsOn(compileJs) 
+
+  override def extraWebappFiles = super.extraWebappFiles +++ (closureOutputPath ** "*")
+
+  override def webappResources =
+    super.webappResources --- closureJsSources --- closureManifestSources
+
+  override def watchPaths =
+    super.watchPaths +++ closureJsSources +++ closureManifestSources
+
+  // Implementation -----------------------------
   
   class ManifestHelper(val manifestPath: Path) {
 
-    val outputPath: Path = Path.fromFile(manifestPath.asFile.getParentFile)
+    val outputPath: Path = toOutputPath(manifestPath)
+    val directoryPath: Path = Path.fromFile(manifestPath.asFile.getParent)
+    
+    def toOutputPath(in: Path): Path = {
+      // Put in output directory:
+      val name0 = in.absolutePath.toString.
+                     replace(closureSourcePath.absolutePath.toString, 
+                             closureOutputPath.absolutePath.toString)
+                             
+      log.debug("NAME0 ===== " + name0)
+      
+      // Rename from .jsm or .jsmanifest to .js:
+      val name1 = """[.]jsm(anifest)?$""".r.replaceAllIn(name0, ".js")
+      
+      log.debug("NAME1 ===== " + name1)
+      
+      Path.fromFile(new File(name1))
+    }
+    
+    log.debug("JS manifest config:")
+    log.debug("  - manifestPath : " + manifestPath)
+    log.debug("  - outputPath   : " + outputPath)
+    log.debug("  - lines        : " + lines)
+    log.debug("  - urls         : " + urls)
+    log.debug("  - urlPaths     : " + urlPaths)
+    log.debug("  - sourcePaths  : " + sourcePaths)
     
     // Reading the manifest ---------------------
     
@@ -66,9 +101,6 @@ trait ClosureCompile extends DefaultWebProject {
     // The first part of building a JS file is downloading and caching
     // any URLs specified in the manifest:
     
-    def extendPath(path: Path, rel: String): Path =
-      rel.split("[\\/]").foldLeft(path)(_ / _)
-    
     def urlToFilename(line: String): String = 
       """[^A-Za-z0-9.]""".r.replaceAllIn(line, "_")
       
@@ -77,16 +109,9 @@ trait ClosureCompile extends DefaultWebProject {
 
     def linePath(line: String): Path = {
       if(isURL(line)) {
-        log.info("URL line " + line)
-        log.info(" as file " + urlToFilename(line))
-        val ans = closureTempPath / urlToFilename(line)
-        log.info(" DONE " + ans)
-        ans
+        toOutputPath(directoryPath) / urlToFilename(line)
       } else {
-        log.info("File line " + line)
-        val ans = extendPath(closureSourcePath, line)
-        log.info(" DONE " + ans)
-        ans
+        Path.fromString(directoryPath, line)
       }
     }
 
@@ -95,9 +120,7 @@ trait ClosureCompile extends DefaultWebProject {
     def urlPaths: List[Path] = urlLines.map(linePath _)
     
     def download(url: URL, path: Path): Option[String] = {
-      log.info("Creating directory")
       FileUtilities.createDirectory(Path.fromFile(path.asFile.getParent), log)
-      log.info("Writing file")
       FileUtilities.write(path.asFile, urlContent(url), log)
     }
     
@@ -105,8 +128,10 @@ trait ClosureCompile extends DefaultWebProject {
       for((url, path) <- urls.zip(urlPaths)) yield {
         val label = "Download " + url.toString
         val product = List(path) from Nil
+
+        log.info("Downloading " + url.toString + " to " + path.toString)
+
         fileTask(label, product){
-          log.info("Downloading " + url.toString + " to " + path.toString)
           download(url, path)
         }.describedAs(label)
       }
@@ -141,8 +166,9 @@ trait ClosureCompile extends DefaultWebProject {
       val label = "Compile " + outputPath.name
       val product = outputPath from (manifestPath :: sourcePaths)
 
+      log.info("Compiling " + manifestPath.toString + " to " + outputPath.toString)
+
       fileTask(label, product){
-        log.info("Compiling " + outputPath.name)
         compile
       }.describedAs(label).dependsOn(downloadTasks : _*)
     }
