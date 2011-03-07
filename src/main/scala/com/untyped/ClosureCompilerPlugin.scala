@@ -124,7 +124,7 @@ trait ClosureCompilerPlugin extends DefaultWebProject {
     def downloadTasks: List[Task] = {
       for((url, path) <- urls.zip(urlPaths)) yield {
         val label = "closure-download " + url.toString
-        val product = List(path) from Nil
+        val product = List(path) from List(manifestPath)
 
         fileTask(label, product){
           log.debug("to " + path.toString)
