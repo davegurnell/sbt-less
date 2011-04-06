@@ -35,7 +35,8 @@ This will give you the ability to use the plugin in your project file. For examp
     }
 
 The default behaviour of the plugin is to scan your `src/main/webapp` directory
-during `prepare-webapp` and compile any `.less` to `.css` files.
+during `prepare-webapp` and compile any `.less` to `.css` files. You need to have
+the `lessc` command available on your path for the plugin to work.
 
 Acknowledgements
 ================
