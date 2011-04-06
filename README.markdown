@@ -1,12 +1,12 @@
-SBT Closure Plugin
-==================
+SBT Less CSS Plugin
+===================
 
-[Simple Build Tool] plugin for compiling Javascript filesfrom multiple sources using Google's [Closure compiler].
+[Simple Build Tool] plugin for compiling [Less CSS] files.
 
 Copyright (c) 2011 [Dave Gurnell] of [Untyped].
 
 [Simple Build Tool]: http://simple-build-tool.googlecode.com
-[Closure compiler]: http://code.google.com/p/closure-compiler
+[Less CSS]: http://lesscss.org
 [Dave Gurnell]: http://boxandarrow.com
 [Untyped]: http://untyped.com
 
@@ -20,7 +20,7 @@ content into it:
 
     class Plugins(info: ProjectInfo) extends PluginDefinition(info) {
       val untypedRepo = "Untyped Repo" at "http://repo.untyped.com"
-      val closureCompiler = "com.untyped" % "sbt-closure" % "0.1"
+      val lessCompiler = "com.untyped" % "sbt-less" % "0.1"
     }
 
 This will give you the ability to use the plugin in your project file. For example:
@@ -28,48 +28,19 @@ This will give you the ability to use the plugin in your project file. For examp
     import sbt._
     
     class MyProject(info: ProjectInfo) extends DefaultWebProject(info)
-      with com.untyped.ClosureCompilerPlugin {
+      with com.untyped.LessCssPlugin {
     
       // and so on...
     
     }
 
 The default behaviour of the plugin is to scan your `src/main/webapp` directory
-and look for files of extension `.jsmanifest`, or `.jsm` for short. These files
-should contain ordered lists of JavaScript source locations. For example:
-
-    # You can specify remote files using URLs...
-    http://code.jquery.com/jquery-1.5.1.js
-    
-    # ...and local files using regular paths
-    #    (relative to the location of the manifest):
-    lib/foo.js
-    bar.js
-    
-    # Blank lines and bash-style comments are also supported.
-    # These may be swapped for JS-style comments in the future.
-
-The plugin compiles this in two phases: first, it downloads and caches any
-remote scripts. Second, it feeds all of the specified scripts into the Closure
-compiler. The compiler outputs a file of the same name and relative path
-of the manifest, but with a `.js` extension. For example, if your manifest
-file is at `webapps/static/js/kitchen-sink.jsm` in the source tree, the final 
-path would be `webapps/static/js/kitchen-sink.js` in the target tree.
-
-If, on compilation, the plugin finds remote scripts already cached on your
-filesystem, it won't try to download them again. Running `sbt clean` will
-delete the cache.
-
-You can change the compiler options by overriding the `closureCompilerOptions`
-method. See the source for details.
-
-Finally, you can execute the plugin's compilation step independently of
-`prepare-webapp` using `sbt compile-js`.
+during `prepare-webapp` and compile any `.less` to `.css` files.
 
 Acknowledgements
 ================
 
-Based on the [Coffee Script SBT plugin], Copyright (c) 2010 Luke Amdor.
+Based indirectly on the [Coffee Script SBT plugin], Copyright (c) 2010 Luke Amdor.
 
 Heavily influenced by the [YUI Compressor SBT plugin] by Jon Hoffman.
 
