@@ -20,7 +20,7 @@ content into it:
 
     class Plugins(info: ProjectInfo) extends PluginDefinition(info) {
       val untypedRepo = "Untyped Repo" at "http://repo.untyped.com"
-      val lessCompiler = "com.untyped" % "sbt-less" % "0.1"
+      val lessCompiler = "untyped" % "sbt-less" % "0.1-SNAPSHOT"
     }
 
 This will give you the ability to use the plugin in your project file. For example:
@@ -28,7 +28,7 @@ This will give you the ability to use the plugin in your project file. For examp
     import sbt._
     
     class MyProject(info: ProjectInfo) extends DefaultWebProject(info)
-      with com.untyped.LessCssPlugin {
+      with untyped.LessCssPlugin {
     
       // and so on...
     

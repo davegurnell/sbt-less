@@ -1,4 +1,4 @@
-package com.untyped
+package untyped
 
 import sbt._
 
@@ -7,7 +7,7 @@ import java.net.URL
 
 import scala.io.Source
 
-import com.google.javascript.jscomp._
+import com.asual.lesscss._
 
 trait LessCssPlugin extends DefaultWebProject {
 
@@ -19,6 +19,8 @@ trait LessCssPlugin extends DefaultWebProject {
   def lessSources: PathFinder = descendents(lessSourcePath, lessSourceFilter)
   
   def lessOutputPath: Path = (outputPath / "less-css-temp") ##
+  
+  val lessEngine = new LessEngine
   
   log.debug("Less CSS config:")
   log.debug("  - lessPath         : " + lessSourcePath)
@@ -65,15 +67,14 @@ trait LessCssPlugin extends DefaultWebProject {
       FileUtilities.createDirectory(outputDirectory, log)
 
     def compile: Option[String] = {
-      import sbt.Process._
-      
-      val commandLine = "lessc " + inputPath.toString + " " + outputPath.toString
-      log.debug(commandLine)
-      
-      val returnCode = commandLine !
-
-      if(returnCode == 0) None
-      else Some("Less failed with an error code: " + returnCode)
+      try {
+        FileUtilities.write(
+          outputPath.asFile,
+          lessEngine.compile(inputPath.asFile),
+          log)
+      } catch {
+        case exn: LessException => Some("LESS CSS error: " + exn.getMessage)
+      }
     }
     
     def compileTask: Task = {
