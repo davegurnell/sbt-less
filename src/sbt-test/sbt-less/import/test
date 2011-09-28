@@ -1,0 +1,46 @@
+# Start with the following import relationships:
+# file1 -> file2, file3 -> file4
+$ copy-file fixtures/file1a.less src/resources/file1.less
+$ copy-file fixtures/file2a.less src/resources/file2.less
+$ copy-file fixtures/file3a.less src/resources/file3.less
+$ copy-file fixtures/file4a.less src/resources/file4.less
+
+# Mark the time and run the compile task:
+$ sleep 1000
+$ touch fixtures/last-compile-time
+$ sleep 1000
+> less
+
+# Check that the CSS files exist:
+$ exists target/scala-2.9.1/resource_managed/main/resources/file1.css
+$ exists target/scala-2.9.1/resource_managed/main/resources/file2.css
+$ exists target/scala-2.9.1/resource_managed/main/resources/file3.css
+$ exists target/scala-2.9.1/resource_managed/main/resources/file4.css
+
+# Check that the CSS files have the correct content:
+> contents target/scala-2.9.1/resource_managed/main/resources/file1.css fixtures/file1a.css
+> contents target/scala-2.9.1/resource_managed/main/resources/file2.css fixtures/file2a.css
+> contents target/scala-2.9.1/resource_managed/main/resources/file3.css fixtures/file3a.css
+> contents target/scala-2.9.1/resource_managed/main/resources/file4.css fixtures/file4a.css
+
+# Modify one file to get the following import relationships:
+# file1 -> file2 -> file3 -> file4
+$ copy-file fixtures/file3b.less src/main/resources/file3.less
+
+# Mark the time and re-run the compile task:
+$ sleep 1000
+$ touch fixtures/last-compile-time
+$ sleep 1000
+> less
+
+# Check that the files have the correct new content:
+> contents target/scala-2.9.1/resource_managed/main/resources/file1.css fixtures/file1b.css
+> contents target/scala-2.9.1/resource_managed/main/resources/file2.css fixtures/file2b.css
+> contents target/scala-2.9.1/resource_managed/main/resources/file3.css fixtures/file3b.css
+> contents target/scala-2.9.1/resource_managed/main/resources/file4.css fixtures/file4b.css
+
+# Check that only the correct files were updated:
+$ newer fixtures/last-compile-time target/scala-2.9.1/resource_managed/main/file1.css
+$ newer fixtures/last-compile-time target/scala-2.9.1/resource_managed/main/file2.css
+$ newer target/scala-2.9.1/resource_managed/main/file3.css fixtures/last-compile-time
+$ newer target/scala-2.9.1/resource_managed/main/file4.css fixtures/last-compile-time

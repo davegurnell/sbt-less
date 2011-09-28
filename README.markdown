@@ -10,33 +10,27 @@ Copyright (c) 2011 [Dave Gurnell] of [Untyped].
 [Dave Gurnell]: http://boxandarrow.com
 [Untyped]: http://untyped.com
 
+Installation
+============
+
+For SBT 0.11:
+
+Create a `project/plugins.sbt` file and paste the following content into it:
+
+    resolvers += "Untyped Public Repo" at "http://repo.untyped.com"
+    
+    addSbtPlugin("untyped" % "sbt-less" % "0.2-SNAPSHOT")
+
+The plugin is currently untested under SBT 0.10. If you manage to get it to work,
+let me know and I'll update these docs.
+
 Usage
 =====
 
-First, create a `project/plugins/Plugins.scala` file and paste the following 
-content into it:
+The default behaviour of the plugin is to scan your `src/main` directory and
+compile any `.less` to `.css` files in equivalent versions under `target`.
 
-    import sbt._
-
-    class Plugins(info: ProjectInfo) extends PluginDefinition(info) {
-      val untypedRepo = "Untyped Repo" at "http://repo.untyped.com"
-      val lessCompiler = "untyped" % "sbt-less" % "0.1-SNAPSHOT"
-    }
-
-This will give you the ability to use the plugin in your project file. For example:
-
-    import sbt._
-    
-    class MyProject(info: ProjectInfo) extends DefaultWebProject(info)
-      with untyped.LessCssPlugin {
-    
-      // and so on...
-    
-    }
-
-The default behaviour of the plugin is to scan your `src/main/webapp` directory
-during `prepare-webapp` and compile any `.less` to `.css` files. You need to have
-the `lessc` command available on your path for the plugin to work.
+The plugin uses Less CSS version 1.1.3.
 
 Acknowledgements
 ================
@@ -45,8 +39,11 @@ Based indirectly on the [Coffee Script SBT plugin], Copyright (c) 2010 Luke Amdo
 
 Heavily influenced by the [YUI Compressor SBT plugin] by Jon Hoffman.
 
+Uses a tweaked version of the [Less for Java] wrapper by Asual.
+
 [Coffee Script SBT plugin]: https://github.com/rubbish/coffee-script-sbt-plugin
 [YUI Compressor SBT plugin]: https://github.com/hoffrocket/sbt-yui
+[Less for Java]: http://www.asual.com/lesscss/
 
 Licence
 =======
