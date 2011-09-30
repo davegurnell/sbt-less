@@ -35,12 +35,14 @@ The plugin uses Less CSS version 1.1.3.
 Acknowledgements
 ================
 
-Based indirectly on the [Coffee Script SBT plugin], Copyright (c) 2010 Luke Amdor.
+v0.2 for SBT 0.11 based on [CoffeeScripted SBT], Copyright (c) 2011 Doug Tangren.
+v0.1 for SBT 0.7 based on [Coffee Script SBT plugin], Copyright (c) 2010 Luke Amdor.
 
 Heavily influenced by the [YUI Compressor SBT plugin] by Jon Hoffman.
 
 Uses a tweaked version of the [Less for Java] wrapper by Asual.
 
+[CoffeeScripted SBT plugin]: https://github.com/softprops/coffeescripted-sbt
 [Coffee Script SBT plugin]: https://github.com/rubbish/coffee-script-sbt-plugin
 [YUI Compressor SBT plugin]: https://github.com/hoffrocket/sbt-yui
 [Less for Java]: http://www.asual.com/lesscss/
