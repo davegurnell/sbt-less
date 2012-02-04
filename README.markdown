@@ -1,9 +1,9 @@
 SBT Less CSS Plugin
 ===================
 
-[Simple Build Tool] plugin for compiling [Less CSS] files.
+**Superseded by sbt-less in https://github.com/untyped/sbt-plugins.**
 
-**This repository has been superceded by https://github.com/untyped/sbt-plugins. Please look there for the latest version of the code.**
+[Simple Build Tool] plugin for compiling [Less CSS] files.
 
 Copyright (c) 2011 [Dave Gurnell] of [Untyped].
 
